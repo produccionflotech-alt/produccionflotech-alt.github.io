@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Produccion</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f3f3f3;
+    margin: 0;
+    padding: 0;
+  }
+  h2, h3 { color: #2b579a; margin-bottom: 10px; }
+  .container { max-width: 1100px; margin: auto; padding: 20px; }
+  .card {
+    background-color: #fff;
+    padding: 30px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  input, select, button {
+    padding: 8px;
+    margin: 5px 0 15px 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #2b579a;
+    box-shadow: 0 0 3px rgba(43,87,154,0.5);
+  }
+  button {
+    background-color: #2b579a;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  button:hover { background-color: #1f3f78; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+  }
+  th {
+    background-color: #2b579a;
+    color: white;
+    position: sticky;
+    top: 0;
+  }
+  tr:hover { background-color: #f1f7ff; }
+  .filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .filters select, .filters input { width: 200px; }
+  #loginDiv {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 25px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  /* grid para formularios */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+  }
+  .form-grid label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .form-grid input, .form-grid select {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  /* grid fijo para vehículos */
+  .vehicles-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* siempre 4 columnas */
+    gap: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- LOGIN -->
+<div id="loginDiv">
+  <div style="text-align:center; margin-top:30px; margin-bottom:30px;">
+    <img src="production-icon.jpg" alt="Production Record" style="max-width:300px; height:auto;">
+  </div>
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Enter</button>
+  <p id="loginError" style="color:red;"></p>
+
+  <p style="text-align:right; margin-top:20px; font-size:13px; color:#666;">
+    by <b>R.Lugo</b>
+  </p>
+</div>
+
+
+<!-- FORMULARIO REGISTRO -->
+<div id="registroForm" style="display:none;">
+
+  <div class="card">
+    <h2>Production Record</h2>
+    <div class="form-grid">
+      <div><label>Work date:</label><input type="date" id="workDate"></div>
+      <div><label>Customer:</label><input type="text" id="client"></div>
+      <div><label>Job Site:</label><input type="text" id="jobSite"></div>
+      <div><label>Supervisor:</label><input type="text" id="supervisor"></div>
+      <div><label>Work Order:</label><input type="text" id="workOrder"></div>
+      <div><label>Name of employees:</label><input type="text" id="employeeName"></div>
+      <div>
+        <label>Type of work:</label>
+        <select id="workType">
+          <option value="">Select</option>
+          <option value="Sewer Pipe">Sewer Pipe</option>
+          <option value="Storm Drain">Storm Drain</option>
+        </select>
+      </div>
+      <div><label>Inspected Feet:</label><input type="number" id="inspectedFeet"></div>
+      <div><label>Link Maps:</label><input type="url" id="linkMaps" placeholder="https://maps.google.com/..."></div>
+      <div>
+        <label>Water pump:</label>
+        <select id="waterPump">
+          <option value="">Select</option>
+          <option value="4 pulgadas">4 pulgadas</option>
+          <option value="6 pulgadas">6 pulgadas</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- VEHÍCULOS -->
+  <div class="card">
+    <h3>Vehicles</h3>
+    <div class="vehicles-grid">
+      <div><label><input type="checkbox" id="tvTruck"> TV Truck</label><select id="tvID" style="display:none;"></select></div>
+      <div><label><input type="checkbox" id="vactorTruck"> Vactor Truck</label><select id="vactorID" style="display:none;"></select></div>
+      <div><label><input type="checkbox" id="pkup"> Pickup Truck</label><select id="pkupID" style="display:none;"></select></div>
+      <div><label><input type="checkbox" id="waterTruck"> Water Truck</label><select id="waterID" style="display:none;"></select></div>
+      <div><label><input type="checkbox" id="excavator"> Excavator</label><select id="excavatorID" style="display:none;"></select></div>
+      <div><label><input type="checkbox" id="compressor"> Compressor</label><select id="compressorID" style="display:none;"></select></div>
+      <div><label><input type="checkbox" id="loader"> Loader</label><select id="loaderID" style="display:none;"></select></div>
+      <div><label><input type="checkbox" id="bulldozer"> Bulldozer</label><select id="bulldozerID" style="display:none;"></select></div>
+    </div>
+  </div>
+
+  <!-- AIR PLUG -->
+  <div class="card">
+    <h3>Air Plug / Flow-Through Plug</h3>
+    <div id="airplugContainer" class="form-grid"></div>
+    <button type="button" onclick="addAirPlug()">+ Add Plug</button>
+  </div>
+
+  <button onclick="addRegistro()">Add Record</button>
+  <button onclick="compartirEmail()">Share by Email</button>
+
+  <!-- FILTROS -->
+  <div class="card filters">
+    <div>
+      <label>Filter by Client:</label>
+      <select id="filterClient" onchange="filtrarRegistros()"><option value="">Todos</option></select>
+    </div>
+    <div>
+      <label>Filter by Work Order:</label>
+      <input type="text" id="filterWorkOrderInput" placeholder="Ingresa Work Order">
+      <button onclick="filtrarPorWorkOrder()">Search</button>
+    </div>
+    <div>
+      <button onclick="exportExcel()">Export Excel</button>
+      <button onclick="exportPDF()">Export PDF</button>
+    </div>
+  </div>
+
+  <!-- TABLA DE REGISTROS -->
+  <div class="card">
+    <h3>Records</h3>
+    <table id="tablaRegistros">
+      <thead>
+        <tr>
+          <th>Date</th><th>Customer</th><th>Job Site</th><th>Supervisor</th>
+          <th>Work Order</th><th>Employees</th><th>Type of work</th><th>Inspected Feet</th>
+          <th>Link Maps</th><th>Vehicles</th><th>ID Vehicles</th><th>Water pump</th><th>Plugs</th><th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- LIBRERÍAS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// Variables globales
+const loginDiv = document.getElementById('loginDiv');
+const registroForm = document.getElementById('registroForm');
+const tabla = document.getElementById('tablaRegistros').querySelector('tbody');
+let registros = JSON.parse(localStorage.getItem('produccion')) || [];
+
+// LOGIN
+function login() {
+  const user = document.getElementById('username').value;
+  const pass = document.getElementById('password').value;
+  const error = document.getElementById('loginError');
+  if(user==='admin' && pass==='1234') {
+    loginDiv.style.display='none';
+    registroForm.style.display='block';
+    mostrarRegistros();
+  } else { error.textContent = 'Usuario o contraseña incorrectos'; }
+}
+
+// VEHÍCULOS
+function setupVehicleID(checkboxID, selectID, prefix){
+  const checkbox = document.getElementById(checkboxID);
+  const select = document.getElementById(selectID);
+  checkbox.addEventListener('change', ()=>{
+    if(checkbox.checked){
+      select.style.display='inline-block';
+      select.innerHTML='<option value="">Selecciona</option>';
+      for(let i=1;i<=100;i++){
+        const option = document.createElement('option');
+        option.value = `${prefix} ${i}`;
+        option.textContent = `${prefix} ${i}`;
+        select.appendChild(option);
+      }
+    } else { select.style.display='none'; select.innerHTML='<option value="">Selecciona</option>'; }
+  });
+}
+setupVehicleID('tvTruck','tvID','TV');
+setupVehicleID('vactorTruck','vactorID','VT');
+setupVehicleID('pkup','pkupID','PK');
+setupVehicleID('waterTruck','waterID','WT');
+setupVehicleID('excavator','excavatorID','EX');
+setupVehicleID('compressor','compressorID','CP');
+setupVehicleID('loader','loaderID','LD');
+setupVehicleID('bulldozer','bulldozerID','BD');
+
+// AIR PLUG dinámico
+function addAirPlug() {
+  const container = document.getElementById('airplugContainer');
+  const card = document.createElement('div');
+  card.innerHTML = `
+    <label>Tipo:</label>
+    <select>
+      <option value="Air Plug">Air Plug</option>
+      <option value="Flow-Through Plug">Flow-Through Plug</option>
+    </select>
+    <label>Extent:</label>
+    <select>
+      <option value="">select</option>
+      <option value="12-24">12-24</option>
+      <option value="15-32">15-32</option>
+      <option value="24-48">24-48</option>
+      <option value="24-60">24-60</option>
+    </select>
+    <label>Cantidad:</label>
+    <select>
+      <option value="">select</option>
+      <option value="1">1</option><option value="2">2</option>
+      <option value="3">3</option><option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <button type="button" onclick="this.parentElement.remove()">Eliminar</button>
+  `;
+  container.appendChild(card);
+}
+
+// AGREGAR REGISTRO
+function addRegistro() {
+  const selectedVehicles = [];
+  const selectedIDs = [];
+  if(document.getElementById('tvTruck').checked){ selectedVehicles.push('TV Truck'); selectedIDs.push(document.getElementById('tvID').value); }
+  if(document.getElementById('vactorTruck').checked){ selectedVehicles.push('Vactor Truck'); selectedIDs.push(document.getElementById('vactorID').value); }
+  if(document.getElementById('pkup').checked){ selectedVehicles.push('Pickup Truck'); selectedIDs.push(document.getElementById('pkupID').value); }
+  if(document.getElementById('waterTruck').checked){ selectedVehicles.push('Water Truck'); selectedIDs.push(document.getElementById('waterID').value); }
+  if(document.getElementById('excavator').checked){ selectedVehicles.push('Excavator'); selectedIDs.push(document.getElementById('excavatorID').value); }
+  if(document.getElementById('compressor').checked){ selectedVehicles.push('Compressor'); selectedIDs.push(document.getElementById('compressorID').value); }
+  if(document.getElementById('loader').checked){ selectedVehicles.push('Loader'); selectedIDs.push(document.getElementById('loaderID').value); }
+  if(document.getElementById('bulldozer').checked){ selectedVehicles.push('Bulldozer'); selectedIDs.push(document.getElementById('bulldozerID').value); }
+
+  const plugs = [];
+  document.querySelectorAll('#airplugContainer div').forEach(card=>{
+    const selects = card.querySelectorAll('select');
+    plugs.push({ tipo: selects[0].value, size: selects[1].value, qty: selects[2].value });
+  });
+
+  const registro = {
+    workDate: document.getElementById('workDate').value,
+    client: document.getElementById('client').value,
+    jobSite: document.getElementById('jobSite').value,
+    supervisor: document.getElementById('supervisor').value,
+    workOrder: document.getElementById('workOrder').value,
+    employeeName: document.getElementById('employeeName').value,
+    workType: document.getElementById('workType').value,
+    inspectedFeet: document.getElementById('inspectedFeet').value,
+    linkMaps: document.getElementById('linkMaps').value,
+    vehicles: selectedVehicles.join(', '),
+    vehicleIDs: selectedIDs.join(', '),
+    waterPump: document.getElementById('waterPump').value,
+    plugs: plugs
+  };
+
+  registros.push(registro);
+  localStorage.setItem('produccion', JSON.stringify(registros));
+
+  document.querySelectorAll('input, select').forEach(el=>{ if(el.type!=='checkbox') el.value=''; });
+  ['tvTruck','vactorTruck','pkup','waterTruck','excavator','compressor','loader','bulldozer']
+    .forEach(id=>document.getElementById(id).checked=false);
+  ['tvID','vactorID','pkupID','waterID','excavatorID','compressorID','loaderID','bulldozerID']
+    .forEach(id=>{document.getElementById(id).style.display='none'; document.getElementById(id).innerHTML='<option value="">Selecciona</option>';});
+  document.getElementById('airplugContainer').innerHTML='';
+
+  mostrarRegistros();
+}
+
+// MOSTRAR REGISTROS
+function mostrarRegistros(data = registros) {
+  tabla.innerHTML='';
+  data.forEach((r,index)=>{
+    const fila = document.createElement('tr');
+    let plugsHTML = r.plugs.map(p=>`${p.tipo} (${p.size}) x${p.qty}`).join('<br>');
+    fila.innerHTML=`
+      <td>${r.workDate||'-'}</td><td>${r.client||'-'}</td><td>${r.jobSite||'-'}</td>
+      <td>${r.supervisor||'-'}</td><td>${r.workOrder||'-'}</td><td>${r.employeeName||'-'}</td>
+      <td>${r.workType||'-'}</td><td>${r.inspectedFeet||'-'}</td>
+      <td>${r.linkMaps?`<a href="${r.linkMaps}" target="_blank">Ver mapa</a>`:'-'}</td>
+      <td>${r.vehicles||'-'}</td><td>${r.vehicleIDs||'-'}</td>
+      <td>${r.waterPump||'-'}</td><td>${plugsHTML||'-'}</td>
+      <td><button onclick="borrarRegistro(${index})">Borrar</button></td>
+    `;
+    tabla.appendChild(fila);
+  });
+  actualizarFiltros();
+}
+
+// BORRAR REGISTRO
+function borrarRegistro(index){
+  registros.splice(index,1);
+  localStorage.setItem('produccion', JSON.stringify(registros));
+  mostrarRegistros();
+}
+
+// FILTROS
+function actualizarFiltros(){
+  const filterClient = document.getElementById('filterClient');
+  filterClient.innerHTML = '<option value="">Todos</option>';
+  [...new Set(registros.map(r=>r.client))].forEach(c => filterClient.innerHTML += `<option value="${c}">${c}</option>`);
+}
+function filtrarRegistros(){
+  const clientValue = document.getElementById('filterClient').value;
+  mostrarRegistros(registros.filter(r => (clientValue === "" || r.client === clientValue)));
+}
+function filtrarPorWorkOrder() {
+  const workOrderValue = document.getElementById('filterWorkOrderInput').value.trim();
+  const clientValue = document.getElementById('filterClient').value;
+  mostrarRegistros(registros.filter(r => 
+    (clientValue === "" || r.client === clientValue) &&
+    (workOrderValue === "" || r.workOrder.includes(workOrderValue))
+  ));
+}
+
+// COMPARTIR POR EMAIL
+function compartirEmail() {
+  if(registros.length === 0) { alert("No hay registros para enviar."); return; }
+  let reporte = "Reporte Diario de Producción:\n\n";
+  registros.forEach(r => {
+    reporte += `Fecha: ${r.workDate}
+Cliente: ${r.client}
+Job Site: ${r.jobSite}
+Supervisor: ${r.supervisor}
+Work Order: ${r.workOrder}
+Empleado: ${r.employeeName}
+Tipo: ${r.workType}
+Feet Inspected: ${r.inspectedFeet}
+Link Maps: ${r.linkMaps}
+Vehículos: ${r.vehicles}
+ID Vehículos: ${r.vehicleIDs}
+Bomba: ${r.waterPump}
+Plugs: ${r.plugs.map(p=>`${p.tipo} (${p.size}) x${p.qty}`).join(', ')}
+--------------------------\n`;
+  });
+  const mailtoLink = `mailto:?subject=Reporte Diario de Producción&body=${encodeURIComponent(reporte)}`;
+  window.location.href = mailtoLink;
+}
+
+function exportExcel() {
+  if (registros.length === 0) { alert("No hay registros para exportar."); return; }
+  const tabla = document.getElementById("tablaRegistros");
+  const ws = XLSX.utils.table_to_sheet(tabla, { raw: true });
+  const colWidths = [];
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    let maxWidth = 10;
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+      if (cell && cell.v) {
+        const length = cell.v.toString().length;
+        if (length > maxWidth) maxWidth = length;
+      }
+    }
+    colWidths.push({ wch: maxWidth + 2 });
+  }
+  ws['!cols'] = colWidths;
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Registros");
+  XLSX.writeFile(wb, "registros.xlsx");
+}
+
+// EXPORTAR PDF
+function exportPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y=10;
+  doc.setFontSize(12);
+  doc.text("Reporte Diario de Producción", 10, y);
+  y+=10;
+  registros.forEach((r,i)=>{
+    doc.text(`${i+1}. ${r.workDate} | ${r.client} | ${r.workOrder}`, 10, y);
+    y+=8;
+    if(y>280){ doc.addPage(); y=10; }
+  });
+  doc.save("registros.pdf");
+}
+
+// Inicializacion
+mostrarRegistros();
+</script>
+</div>
+</body>
+</html>
